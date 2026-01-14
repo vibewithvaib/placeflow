@@ -1,9 +1,8 @@
 package com.placeflow.authservice2.entity;
 
 public enum Role {
-    STUDENT,
+    ADMIN,
     TPO,
-    COMPANY,
-    ADMIN
+    STUDENT,
+    COMPANY
 }
-
