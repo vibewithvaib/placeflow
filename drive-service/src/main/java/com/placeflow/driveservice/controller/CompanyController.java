@@ -22,13 +22,10 @@ public class CompanyController {
 
     /**
      * TPO creates company profile
+     * companyAuthEmail MUST match the COMPANY login email
      */
     @PostMapping
-    public Company createCompany(
-            @RequestBody Company company,
-            Authentication authentication
-    ) {
-        company.setCreatedBy(authentication.getName()); // TPO email
+    public Company createCompany(@RequestBody Company company) {
         return companyRepository.save(company);
     }
 }

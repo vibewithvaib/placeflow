@@ -23,11 +23,13 @@ public class Company {
     private String description;
 
     private String industry;
-
     private String location;
-
     private String website;
 
-    // Email of TPO who created this company
-    private String createdBy;
+    /**
+     * 🔐 AUTH OWNERSHIP FIELD
+     * Email of COMPANY user from auth-service
+     */
+    @Column(nullable = false, unique = true)
+    private String companyAuthEmail;
 }

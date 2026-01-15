@@ -63,6 +63,10 @@ public class ApplicationController {
         EligibilityCriteria criteria =
                 eligibilityRepository.findByDriveId(driveId);
 
+        if (criteria == null) {
+            throw new RuntimeException("Eligibility criteria not defined for this drive");
+        }
+
         StudentProfile student =
                 studentProfileService.getProfile(studentEmail);
 

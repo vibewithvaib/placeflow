@@ -6,31 +6,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlacementDrive {
+public class StudentRoundStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
-    private Company company;
+    private StudentApplication application;
 
-    private String title;
-    private String jobRole;
-    private Double ctc;
-
-    @Column(length = 2000)
-    private String description;
-
-    private LocalDate applicationDeadline;
+    @ManyToOne(optional = false)
+    private InterviewRound round;
 
     @Enumerated(EnumType.STRING)
-    private DriveStatus status;
+    private RoundResult result;
 }
