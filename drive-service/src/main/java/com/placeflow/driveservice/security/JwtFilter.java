@@ -1,4 +1,4 @@
-package com.placeflow.authservice2.util;
+package com.placeflow.driveservice.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -18,21 +18,9 @@ import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-    private final TokenBlacklist tokenBlacklist;
-
-    public JwtFilter(TokenBlacklist tokenBlacklist) {
-        this.tokenBlacklist = tokenBlacklist;
-    }
-
 
     @Value("${jwt.secret}")
     private String secret;
-
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getServletPath().startsWith("/auth/");
-    }
 
     @Override
     protected void doFilterInternal(
@@ -46,10 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
 
             String token = header.substring(7);
-            if (tokenBlacklist.isBlacklisted(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
+
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(secret.getBytes())
                     .build()

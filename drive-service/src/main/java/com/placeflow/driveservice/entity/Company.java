@@ -1,9 +1,16 @@
 package com.placeflow.driveservice.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Table(name = "companies")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Company {
 
     @Id
@@ -11,10 +18,16 @@ public class Company {
     private Long id;
 
     private String name;
+
+    @Column(length = 1000)
     private String description;
+
     private String industry;
+
     private String location;
 
-    private boolean active;
-}
+    private String website;
 
+    // Email of TPO who created this company
+    private String createdBy;
+}
