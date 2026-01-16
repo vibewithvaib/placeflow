@@ -1,10 +1,9 @@
 package com.placeflow.driveservice.controller;
 
-import com.placeflow.driveservice.entity.InterviewRound;
-import com.placeflow.driveservice.entity.PlacementDrive;
-import com.placeflow.driveservice.entity.RoundResult;
-import com.placeflow.driveservice.entity.StudentApplication;
+import com.placeflow.driveservice.DTO.CreateInterviewRoundRequest;
+import com.placeflow.driveservice.entity.*;
 import com.placeflow.driveservice.repository.ApplicationRepository;
+import com.placeflow.driveservice.repository.DriveRepository;
 import com.placeflow.driveservice.repository.InterviewRoundRepository;
 import com.placeflow.driveservice.service.InterviewWorkflowService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,24 +17,34 @@ public class CompanyInterviewController {
     private final InterviewRoundRepository roundRepo;
     private final ApplicationRepository appRepo;
     private final InterviewWorkflowService workflowService;
+    private final DriveRepository driveRepository;
 
     public CompanyInterviewController(
             InterviewRoundRepository roundRepo,
             ApplicationRepository appRepo,
-            InterviewWorkflowService workflowService
+            InterviewWorkflowService workflowService,
+            DriveRepository driveRepository
     ) {
         this.roundRepo = roundRepo;
         this.appRepo = appRepo;
         this.workflowService = workflowService;
+        this.driveRepository = driveRepository;
     }
 
     @PostMapping("/drives/{driveId}/rounds")
     public InterviewRound addRound(
             @PathVariable Long driveId,
-            @RequestBody InterviewRound round
+            @RequestBody CreateInterviewRoundRequest request
     ) {
-        PlacementDrive drive = round.getDrive();
+        PlacementDrive drive = driveRepository.findById(driveId)
+                .orElseThrow(() -> new RuntimeException("Drive not found"));
+
+        InterviewRound round = new InterviewRound();
         round.setDrive(drive);
+        round.setRoundOrder(request.getRoundOrder());
+        round.setName(request.getName());
+        round.setType(request.getType());
+
         return roundRepo.save(round);
     }
 
@@ -53,7 +62,9 @@ public class CompanyInterviewController {
                 roundRepo.findById(roundId)
                         .orElseThrow(() -> new RuntimeException("Round not found"));
 
+
         workflowService.updateRoundResult(app, round, result);
     }
 }
+
 

@@ -19,7 +19,7 @@ public class Company {
 
     private String name;
 
-    @Column(length = 1000)
+    @Column(length = 100)
     private String description;
 
     private String industry;

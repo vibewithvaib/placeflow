@@ -26,6 +26,7 @@ public class CompanyController {
      */
     @PostMapping
     public Company createCompany(@RequestBody Company company) {
+        System.out.println(company.getDescription());
         return companyRepository.save(company);
     }
 }

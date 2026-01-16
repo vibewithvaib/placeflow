@@ -5,14 +5,12 @@ import com.placeflow.driveservice.repository.ApplicationRepository;
 import com.placeflow.driveservice.repository.DriveRepository;
 import com.placeflow.driveservice.repository.EligibilityRepository;
 import com.placeflow.driveservice.service.EligibilityEvaluator;
+import com.placeflow.driveservice.service.InterviewWorkflowService;
 import com.placeflow.driveservice.service.StudentProfile;
 import com.placeflow.driveservice.service.StudentProfileService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -25,20 +23,23 @@ public class ApplicationController {
     private final DriveRepository driveRepository;
     private final EligibilityRepository eligibilityRepository;
     private final StudentProfileService studentProfileService;
-    private final EligibilityEvaluator evaluator;
+    private final EligibilityEvaluator eligibilityEvaluator;
+    private final InterviewWorkflowService interviewWorkflowService;
 
     public ApplicationController(
             ApplicationRepository applicationRepository,
             DriveRepository driveRepository,
             EligibilityRepository eligibilityRepository,
             StudentProfileService studentProfileService,
-            EligibilityEvaluator evaluator
+            EligibilityEvaluator eligibilityEvaluator,
+            InterviewWorkflowService interviewWorkflowService
     ) {
         this.applicationRepository = applicationRepository;
         this.driveRepository = driveRepository;
         this.eligibilityRepository = eligibilityRepository;
         this.studentProfileService = studentProfileService;
-        this.evaluator = evaluator;
+        this.eligibilityEvaluator = eligibilityEvaluator;
+        this.interviewWorkflowService = interviewWorkflowService;
     }
 
     @PostMapping("/{driveId}")
@@ -64,26 +65,37 @@ public class ApplicationController {
                 eligibilityRepository.findByDriveId(driveId);
 
         if (criteria == null) {
-            throw new RuntimeException("Eligibility criteria not defined for this drive");
+            throw new RuntimeException("Eligibility criteria not defined");
         }
 
         StudentProfile student =
                 studentProfileService.getProfile(studentEmail);
 
+        if (student == null) {
+            throw new RuntimeException("Student profile not found");
+        }
+
         boolean eligible =
-                evaluator.isEligible(student, criteria);
+                eligibilityEvaluator.isEligible(student, criteria);
 
         StudentApplication app = new StudentApplication();
         app.setStudentEmail(studentEmail);
         app.setDrive(drive);
         app.setAppliedAt(LocalDateTime.now());
-
         app.setStatus(
                 eligible
                         ? ApplicationStatus.ELIGIBLE
                         : ApplicationStatus.REJECTED
         );
 
-        return applicationRepository.save(app);
+        StudentApplication saved =
+                applicationRepository.saveAndFlush(app);
+
+        if (saved.getStatus() == ApplicationStatus.ELIGIBLE) {
+            interviewWorkflowService.startInterviewProcess(saved);
+        }
+
+        return saved;
     }
+
 }
