@@ -17,33 +17,33 @@ public class CompanyInterviewController {
     private final InterviewRoundRepository roundRepo;
     private final ApplicationRepository appRepo;
     private final InterviewWorkflowService workflowService;
-    private final DriveRepository driveRepository;
+    private final DriveRepository driveRepo;
 
     public CompanyInterviewController(
             InterviewRoundRepository roundRepo,
             ApplicationRepository appRepo,
             InterviewWorkflowService workflowService,
-            DriveRepository driveRepository
+            DriveRepository driveRepo
     ) {
         this.roundRepo = roundRepo;
         this.appRepo = appRepo;
         this.workflowService = workflowService;
-        this.driveRepository = driveRepository;
+        this.driveRepo = driveRepo;
     }
 
     @PostMapping("/drives/{driveId}/rounds")
     public InterviewRound addRound(
             @PathVariable Long driveId,
-            @RequestBody CreateInterviewRoundRequest request
+            @RequestBody CreateInterviewRoundRequest req
     ) {
-        PlacementDrive drive = driveRepository.findById(driveId)
+        PlacementDrive drive = driveRepo.findById(driveId)
                 .orElseThrow(() -> new RuntimeException("Drive not found"));
 
         InterviewRound round = new InterviewRound();
         round.setDrive(drive);
-        round.setRoundOrder(request.getRoundOrder());
-        round.setName(request.getName());
-        round.setType(request.getType());
+        round.setRoundOrder(req.getRoundOrder());
+        round.setName(req.getName());
+        round.setType(req.getType());
 
         return roundRepo.save(round);
     }
@@ -62,9 +62,9 @@ public class CompanyInterviewController {
                 roundRepo.findById(roundId)
                         .orElseThrow(() -> new RuntimeException("Round not found"));
 
-
         workflowService.updateRoundResult(app, round, result);
     }
 }
+
 
 

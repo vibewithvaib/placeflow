@@ -7,10 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 public class InterviewRound {
 
     @Id
@@ -20,10 +18,10 @@ public class InterviewRound {
     @ManyToOne(optional = false)
     private PlacementDrive drive;
 
-    private Integer roundOrder; // 1, 2, 3...
-
-    private String name; // Online Test, Tech 1, HR
+    private Integer roundOrder;
+    private String name;
 
     @Enumerated(EnumType.STRING)
     private RoundType type;
 }
+

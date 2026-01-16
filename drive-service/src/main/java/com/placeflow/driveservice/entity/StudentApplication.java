@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+
 @Entity
 @Getter
 @Setter
@@ -19,9 +20,9 @@ public class StudentApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String studentEmail;   // From JWT
+    private String studentEmail;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private PlacementDrive drive;
 
     @Enumerated(EnumType.STRING)

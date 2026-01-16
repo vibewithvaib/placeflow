@@ -11,9 +11,12 @@ import java.util.Optional;
 public interface StudentRoundStatusRepository
         extends JpaRepository<StudentRoundStatus, Long> {
 
-    Optional<StudentRoundStatus>
-    findByApplicationIdAndRoundId(Long appId, Long roundId);
+    Optional<StudentRoundStatus> findByApplicationIdAndRoundId(
+            Long applicationId,
+            Long roundId
+    );
 
-    List<StudentRoundStatus>
-    findByApplicationId(Long appId);
+    List<StudentRoundStatus> findByApplicationId(Long applicationId);
+
+    boolean existsByApplicationId(Long applicationId);
 }

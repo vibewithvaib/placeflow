@@ -19,67 +19,59 @@ import java.time.LocalDateTime;
 @PreAuthorize("hasRole('STUDENT')")
 public class ApplicationController {
 
-    private final ApplicationRepository applicationRepository;
-    private final DriveRepository driveRepository;
-    private final EligibilityRepository eligibilityRepository;
-    private final StudentProfileService studentProfileService;
-    private final EligibilityEvaluator eligibilityEvaluator;
-    private final InterviewWorkflowService interviewWorkflowService;
+    private final ApplicationRepository applicationRepo;
+    private final DriveRepository driveRepo;
+    private final EligibilityRepository eligibilityRepo;
+    private final StudentProfileService profileService;
+    private final EligibilityEvaluator evaluator;
+    private final InterviewWorkflowService interviewService;
 
     public ApplicationController(
-            ApplicationRepository applicationRepository,
-            DriveRepository driveRepository,
-            EligibilityRepository eligibilityRepository,
-            StudentProfileService studentProfileService,
-            EligibilityEvaluator eligibilityEvaluator,
-            InterviewWorkflowService interviewWorkflowService
+            ApplicationRepository applicationRepo,
+            DriveRepository driveRepo,
+            EligibilityRepository eligibilityRepo,
+            StudentProfileService profileService,
+            EligibilityEvaluator evaluator,
+            InterviewWorkflowService interviewService
     ) {
-        this.applicationRepository = applicationRepository;
-        this.driveRepository = driveRepository;
-        this.eligibilityRepository = eligibilityRepository;
-        this.studentProfileService = studentProfileService;
-        this.eligibilityEvaluator = eligibilityEvaluator;
-        this.interviewWorkflowService = interviewWorkflowService;
+        this.applicationRepo = applicationRepo;
+        this.driveRepo = driveRepo;
+        this.eligibilityRepo = eligibilityRepo;
+        this.profileService = profileService;
+        this.evaluator = evaluator;
+        this.interviewService = interviewService;
     }
 
     @PostMapping("/{driveId}")
     public StudentApplication apply(
             @PathVariable Long driveId,
-            Authentication authentication
+            Authentication auth
     ) {
-        String studentEmail = authentication.getName();
+        String email = auth.getName();
 
-        PlacementDrive drive = driveRepository.findById(driveId)
+        PlacementDrive drive = driveRepo.findById(driveId)
                 .orElseThrow(() -> new RuntimeException("Drive not found"));
 
         if (drive.getStatus() != DriveStatus.OPEN) {
-            throw new RuntimeException("Drive is not open");
+            throw new RuntimeException("Drive not open");
         }
 
-        applicationRepository.findByStudentEmailAndDriveId(studentEmail, driveId)
+        applicationRepo.findByStudentEmailAndDriveId(email, driveId)
                 .ifPresent(a -> {
                     throw new RuntimeException("Already applied");
                 });
 
         EligibilityCriteria criteria =
-                eligibilityRepository.findByDriveId(driveId);
-
-        if (criteria == null) {
-            throw new RuntimeException("Eligibility criteria not defined");
-        }
+                eligibilityRepo.findByDriveId(driveId);
 
         StudentProfile student =
-                studentProfileService.getProfile(studentEmail);
-
-        if (student == null) {
-            throw new RuntimeException("Student profile not found");
-        }
+                profileService.getProfile(email);
 
         boolean eligible =
-                eligibilityEvaluator.isEligible(student, criteria);
+                evaluator.isEligible(student, criteria);
 
         StudentApplication app = new StudentApplication();
-        app.setStudentEmail(studentEmail);
+        app.setStudentEmail(email);
         app.setDrive(drive);
         app.setAppliedAt(LocalDateTime.now());
         app.setStatus(
@@ -89,13 +81,13 @@ public class ApplicationController {
         );
 
         StudentApplication saved =
-                applicationRepository.saveAndFlush(app);
+                applicationRepo.saveAndFlush(app);
 
         if (saved.getStatus() == ApplicationStatus.ELIGIBLE) {
-            interviewWorkflowService.startInterviewProcess(saved);
+            interviewService.startInterviewProcess(saved);
         }
 
         return saved;
     }
-
 }
+

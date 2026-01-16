@@ -1,9 +1,7 @@
 package com.placeflow.driveservice.service;
 
-import com.placeflow.driveservice.entity.InterviewRound;
-import com.placeflow.driveservice.entity.RoundResult;
-import com.placeflow.driveservice.entity.StudentApplication;
-import com.placeflow.driveservice.entity.StudentRoundStatus;
+import com.placeflow.driveservice.entity.*;
+import com.placeflow.driveservice.repository.ApplicationRepository;
 import com.placeflow.driveservice.repository.InterviewRoundRepository;
 import com.placeflow.driveservice.repository.StudentRoundStatusRepository;
 import org.springframework.stereotype.Service;
@@ -12,6 +10,7 @@ import java.util.List;
 
 @Service
 public class InterviewWorkflowService {
+
     private final InterviewRoundRepository roundRepo;
     private final StudentRoundStatusRepository statusRepo;
 
@@ -24,9 +23,14 @@ public class InterviewWorkflowService {
     }
 
     /**
-     * Initialize first round for eligible student
+     * Called ONLY when student becomes ELIGIBLE
      */
     public void startInterviewProcess(StudentApplication app) {
+
+        // 🔐 Prevent duplicate initialization
+        if (statusRepo.existsByApplicationId(app.getId())) {
+            return;
+        }
 
         List<InterviewRound> rounds =
                 roundRepo.findByDriveIdOrderByRoundOrder(
@@ -48,7 +52,7 @@ public class InterviewWorkflowService {
     }
 
     /**
-     * Update round result and progress workflow
+     * Company updates result
      */
     public void updateRoundResult(
             StudentApplication app,
@@ -59,8 +63,13 @@ public class InterviewWorkflowService {
                 statusRepo.findByApplicationIdAndRoundId(
                         app.getId(), round.getId()
                 ).orElseThrow(
-                        () -> new RuntimeException("Round not initialized")
+                        () -> new RuntimeException("Interview round not started yet")
                 );
+
+        // ❌ Prevent re-updating completed round
+        if (status.getResult() != RoundResult.PENDING) {
+            throw new RuntimeException("Round already evaluated");
+        }
 
         status.setResult(result);
         statusRepo.save(status);
@@ -82,16 +91,15 @@ public class InterviewWorkflowService {
         int index = rounds.indexOf(currentRound);
 
         if (index + 1 < rounds.size()) {
-            InterviewRound next = rounds.get(index + 1);
+            InterviewRound nextRound = rounds.get(index + 1);
 
             StudentRoundStatus nextStatus = new StudentRoundStatus();
             nextStatus.setApplication(app);
-            nextStatus.setRound(next);
+            nextStatus.setRound(nextRound);
             nextStatus.setResult(RoundResult.PENDING);
 
             statusRepo.save(nextStatus);
         }
-        // else → last round passed (selection handled later)
+        // else → final round completed
     }
 }
-
