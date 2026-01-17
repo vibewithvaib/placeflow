@@ -1,6 +1,5 @@
-package com.placeflow.studentservice.entity;
+package com.placeflow.driveservice.dto;
 
 public enum VerificationStatus {
     PENDING, VERIFIED, REJECTED
 }
-

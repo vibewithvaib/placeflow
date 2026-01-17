@@ -12,7 +12,15 @@
         <option value="$PROJECT_DIR$/offer-service/pom.xml" />
         <option value="$PROJECT_DIR$/notification-service2/pom.xml" />
         <option value="$PROJECT_DIR$/audit-service/pom.xml" />
+        <option value="$PROJECT_DIR$/eureka-server/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/eligibility-service/pom.xml" />
+        <option value="$PROJECT_DIR$/offer-service/pom.xml" />
+        <option value="$PROJECT_DIR$/workflow-service/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager">

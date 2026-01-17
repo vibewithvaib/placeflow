@@ -1,13 +1,13 @@
 package com.placeflow.driveservice.controller.student;
 
+import com.placeflow.driveservice.StudentClient;
+import com.placeflow.driveservice.dto.StudentProfileDTO;
 import com.placeflow.driveservice.entity.*;
 import com.placeflow.driveservice.repository.ApplicationRepository;
 import com.placeflow.driveservice.repository.DriveRepository;
 import com.placeflow.driveservice.repository.EligibilityRepository;
 import com.placeflow.driveservice.service.eligibility.EligibilityEvaluator;
 import com.placeflow.driveservice.service.interview.InterviewWorkflowService;
-import com.placeflow.driveservice.service.student.StudentProfile;
-import com.placeflow.driveservice.service.student.StudentProfileService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +26,7 @@ public class ApplicationController {
     private final ApplicationRepository appRepo;
     private final DriveRepository driveRepo;
     private final EligibilityRepository eligibilityRepo;
-    private final StudentProfileService profileService;
+    private final StudentClient studentClient;
     private final EligibilityEvaluator evaluator;
     private final InterviewWorkflowService workflowService;
 
@@ -34,14 +34,14 @@ public class ApplicationController {
             ApplicationRepository appRepo,
             DriveRepository driveRepo,
             EligibilityRepository eligibilityRepo,
-            StudentProfileService profileService,
             EligibilityEvaluator evaluator,
-            InterviewWorkflowService workflowService
+            InterviewWorkflowService workflowService,
+            StudentClient studentClient
     ) {
         this.appRepo = appRepo;
         this.driveRepo = driveRepo;
         this.eligibilityRepo = eligibilityRepo;
-        this.profileService = profileService;
+        this.studentClient = studentClient;
         this.evaluator = evaluator;
         this.workflowService = workflowService;
     }
@@ -70,10 +70,16 @@ public class ApplicationController {
 
         if (criteria == null)
             throw new RuntimeException("Eligibility not defined");
+        StudentProfileDTO student = null;
+        try {
+            student = studentClient.getStudent(email);
+        } catch (Exception e) {
+            throw new RuntimeException("Student service unavailable");
+        }
 
-        StudentProfile student = profileService.getProfile(email);
+        boolean eligible =
+                evaluator.isEligible(student, criteria);
 
-        boolean eligible = evaluator.isEligible(student, criteria);
 
         StudentApplication app = new StudentApplication();
         app.setStudentEmail(email);
