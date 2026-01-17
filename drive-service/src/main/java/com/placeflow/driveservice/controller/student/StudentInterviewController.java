@@ -1,4 +1,4 @@
-package com.placeflow.driveservice.controller;
+package com.placeflow.driveservice.controller.student;
 
 import com.placeflow.driveservice.entity.StudentRoundStatus;
 import com.placeflow.driveservice.repository.StudentRoundStatusRepository;
@@ -22,7 +22,7 @@ public class StudentInterviewController {
     }
 
     @GetMapping("/applications/{appId}")
-    public List<StudentRoundStatus> viewStatus(@PathVariable Long appId) {
+    public List<StudentRoundStatus> status(@PathVariable Long appId) {
         return repo.findByApplicationId(appId);
     }
 }

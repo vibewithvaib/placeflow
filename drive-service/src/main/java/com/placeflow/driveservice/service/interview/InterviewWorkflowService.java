@@ -1,7 +1,6 @@
-package com.placeflow.driveservice.service;
+package com.placeflow.driveservice.service.interview;
 
 import com.placeflow.driveservice.entity.*;
-import com.placeflow.driveservice.repository.ApplicationRepository;
 import com.placeflow.driveservice.repository.InterviewRoundRepository;
 import com.placeflow.driveservice.repository.StudentRoundStatusRepository;
 import org.springframework.stereotype.Service;
@@ -22,84 +21,79 @@ public class InterviewWorkflowService {
         this.statusRepo = statusRepo;
     }
 
-    /**
-     * Called ONLY when student becomes ELIGIBLE
-     */
+    /** Start interview only once */
     public void startInterviewProcess(StudentApplication app) {
-
-        // 🔐 Prevent duplicate initialization
-        if (statusRepo.existsByApplicationId(app.getId())) {
-            return;
-        }
 
         List<InterviewRound> rounds =
                 roundRepo.findByDriveIdOrderByRoundOrder(
                         app.getDrive().getId()
                 );
 
-        if (rounds.isEmpty()) {
-            throw new RuntimeException("No interview rounds defined");
-        }
+        if (rounds.isEmpty())
+            throw new RuntimeException("No rounds defined");
 
-        InterviewRound firstRound = rounds.get(0);
-
+        // initialize ONLY first round
         StudentRoundStatus status = new StudentRoundStatus();
         status.setApplication(app);
-        status.setRound(firstRound);
+        status.setRound(rounds.get(0));
         status.setResult(RoundResult.PENDING);
 
         statusRepo.save(status);
     }
 
-    /**
-     * Company updates result
-     */
+    /** Update round result */
     public void updateRoundResult(
             StudentApplication app,
             InterviewRound round,
             RoundResult result
     ) {
-        StudentRoundStatus status =
+
+        StudentRoundStatus current =
                 statusRepo.findByApplicationIdAndRoundId(
                         app.getId(), round.getId()
-                ).orElseThrow(
-                        () -> new RuntimeException("Interview round not started yet")
+                ).orElseThrow(() ->
+                        new RuntimeException("Round not initialized")
                 );
 
-        // ❌ Prevent re-updating completed round
-        if (status.getResult() != RoundResult.PENDING) {
+        // ❌ prevent re-update
+        if (current.getResult() != RoundResult.PENDING)
             throw new RuntimeException("Round already evaluated");
-        }
 
-        status.setResult(result);
-        statusRepo.save(status);
+        current.setResult(result);
+        statusRepo.save(current);
 
         if (result == RoundResult.PASSED) {
             moveToNextRound(app, round);
+        } else {
+            // failed → stop workflow
+            app.setStatus(ApplicationStatus.REJECTED);
         }
     }
 
-    private void moveToNextRound(
-            StudentApplication app,
-            InterviewRound currentRound
-    ) {
+    /** Move to next round ONLY if passed */
+    private void moveToNextRound(StudentApplication app, InterviewRound current) {
+
         List<InterviewRound> rounds =
                 roundRepo.findByDriveIdOrderByRoundOrder(
                         app.getDrive().getId()
                 );
 
-        int index = rounds.indexOf(currentRound);
+        int idx = rounds.indexOf(current);
 
-        if (index + 1 < rounds.size()) {
-            InterviewRound nextRound = rounds.get(index + 1);
-
-            StudentRoundStatus nextStatus = new StudentRoundStatus();
-            nextStatus.setApplication(app);
-            nextStatus.setRound(nextRound);
-            nextStatus.setResult(RoundResult.PENDING);
-
-            statusRepo.save(nextStatus);
+        if (idx + 1 >= rounds.size()) {
+            // 🎉 selected
+            app.setStatus(ApplicationStatus.SELECTED);
+            return;
         }
-        // else → final round completed
+
+        InterviewRound next = rounds.get(idx + 1);
+
+        StudentRoundStatus nextStatus = new StudentRoundStatus();
+        nextStatus.setApplication(app);
+        nextStatus.setRound(next);
+        nextStatus.setResult(RoundResult.PENDING);
+
+        statusRepo.save(nextStatus);
     }
 }
+

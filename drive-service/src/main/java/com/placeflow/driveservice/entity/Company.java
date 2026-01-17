@@ -19,17 +19,15 @@ public class Company {
 
     private String name;
 
-    @Column(length = 100)
+    @Column(length = 1000)
     private String description;
 
     private String industry;
     private String location;
     private String website;
 
-    /**
-     * 🔐 AUTH OWNERSHIP FIELD
-     * Email of COMPANY user from auth-service
-     */
+    // email from auth-service
     @Column(nullable = false, unique = true)
-    private String companyAuthEmail;
+    private String authEmail;
 }
+

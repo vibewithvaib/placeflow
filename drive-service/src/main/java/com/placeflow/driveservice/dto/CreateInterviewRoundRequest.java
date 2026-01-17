@@ -1,4 +1,4 @@
-package com.placeflow.driveservice.DTO;
+package com.placeflow.driveservice.dto;
 
 import com.placeflow.driveservice.entity.RoundType;
 import lombok.AllArgsConstructor;
@@ -15,6 +15,5 @@ public class CreateInterviewRoundRequest {
     private Integer roundOrder;
     private String name;
     private RoundType type;
-
-    // getters & setters
 }
+

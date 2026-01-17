@@ -1,12 +1,10 @@
 package com.placeflow.driveservice.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,8 +17,11 @@ import java.util.List;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final JwtUtil jwtUtil;
+
+    public JwtFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -35,11 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String token = header.substring(7);
 
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(secret.getBytes())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            Claims claims = jwtUtil.extractClaims(token);
 
             String email = claims.getSubject();
             String role = claims.get("role", String.class);
@@ -57,3 +54,4 @@ public class JwtFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 }
+

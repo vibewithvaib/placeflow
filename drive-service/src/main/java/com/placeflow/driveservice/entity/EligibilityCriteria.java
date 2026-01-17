@@ -19,11 +19,10 @@ public class EligibilityCriteria {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(optional = false)
     private PlacementDrive drive;
 
     private Double minCgpa;
-
     private Integer min10thMarks;
     private Integer min12thOrDiplomaMarks;
 
@@ -35,3 +34,4 @@ public class EligibilityCriteria {
 
     private Integer minExperienceMonths;
 }
+

@@ -5,3 +5,4 @@ public enum RoundType {
     TECHNICAL,
     HR
 }
+

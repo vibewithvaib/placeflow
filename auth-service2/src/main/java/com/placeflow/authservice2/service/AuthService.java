@@ -21,7 +21,7 @@ public class AuthService {
     }
 
     public String login(String email, String password) {
-
+        System.out.println(email);
         User user = repo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

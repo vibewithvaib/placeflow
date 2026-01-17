@@ -5,3 +5,4 @@ public enum RoundResult {
     PASSED,
     FAILED
 }
+

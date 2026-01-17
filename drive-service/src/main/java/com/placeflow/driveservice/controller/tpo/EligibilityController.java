@@ -1,4 +1,4 @@
-package com.placeflow.driveservice.controller;
+package com.placeflow.driveservice.controller.tpo;
 
 import com.placeflow.driveservice.entity.EligibilityCriteria;
 import com.placeflow.driveservice.entity.PlacementDrive;
@@ -8,30 +8,31 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/eligibility")
+@RequestMapping("/tpo/eligibility")
 @PreAuthorize("hasRole('TPO')")
 public class EligibilityController {
 
-    private final EligibilityRepository eligibilityRepository;
-    private final DriveRepository driveRepository;
+    private final EligibilityRepository repo;
+    private final DriveRepository driveRepo;
 
     public EligibilityController(
-            EligibilityRepository eligibilityRepository,
-            DriveRepository driveRepository
+            EligibilityRepository repo,
+            DriveRepository driveRepo
     ) {
-        this.eligibilityRepository = eligibilityRepository;
-        this.driveRepository = driveRepository;
+        this.repo = repo;
+        this.driveRepo = driveRepo;
     }
 
     @PostMapping("/{driveId}")
-    public EligibilityCriteria createEligibility(
+    public EligibilityCriteria create(
             @PathVariable Long driveId,
             @RequestBody EligibilityCriteria criteria
     ) {
-        PlacementDrive drive = driveRepository.findById(driveId)
+        PlacementDrive drive = driveRepo.findById(driveId)
                 .orElseThrow(() -> new RuntimeException("Drive not found"));
 
         criteria.setDrive(drive);
-        return eligibilityRepository.save(criteria);
+        return repo.save(criteria);
     }
 }
+
